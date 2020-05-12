@@ -49,8 +49,7 @@ def verify_hmac_hash(data, signature):
 @app.route("/payload", methods=['POST'])
 def github_payload():
     signature = request.headers.get('X-Hub-Signature')
-    data = request.data
-    if not verify_hmac_hash(data, signature):
+    if not verify_hmac_hash(request.data, signature):
         return "Invalid HMAC", 500
     
     github_event = request.headers.get('X-GitHub-Event') 
@@ -62,7 +61,13 @@ def github_payload():
     branch = payload["ref"] 
     if not branch == "refs/heads/master":
         return "Branch is not master: {} - No Build".format(branch)
-    response = requests.get(payload["compare"])
+    
+    base_compare_url = payload["compare_url"]
+    base = payload["before"]
+    head = payload["after"]
+    compare_url = base_compare_url.replace("{base}",base).replace("{head}",head)
+    
+    response = requests.get(compare_url)
     data = response.json()
     for f in data["files"]:
         if f["filename"].startswith("maps/"):
