@@ -119,6 +119,6 @@ if __name__ == "__main__":
         sys.exit(1)
         
     print("Current secret is {}, use it while setting up webhook.".format(os.getenv('GITHUB_SECRET')))
-    app.run()
+    app.run(host='0.0.0.0')
     # path = os.path.join(os.path.dirname(__file__), "__cache", "Aurorastation/Aurora.3")
     # handle_generation(path, "https://github.com/Aurorastation/Aurora.3.git", "")
