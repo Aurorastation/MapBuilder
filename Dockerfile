@@ -4,6 +4,10 @@ COPY . /app
 WORKDIR /app
 
 RUN pip install -r requirements.txt
+RUN wget https://github.com/SpaceManiac/SpacemanDMM/releases/download/suite-1.4/dmm-tools.exe && \
+    wget https://github.com/SpaceManiac/SpacemanDMM/releases/download/suite-1.4/dmm-tools && \
+    chmod u+x dmm-tools.exe && \
+    chmox u+x dmm-tools
 
 
 ENV GITHUB_SECRET DEFAULT
