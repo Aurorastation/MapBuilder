@@ -1,6 +1,5 @@
-from flask import Flask, send_from_directory
-app = Flask(__name__)
 import os
+import sys
 import subprocess
 import glob
 import hmac
@@ -12,7 +11,11 @@ import git
 from git import Repo
 import wget
 
+from flask import Flask, send_from_directory
+
 import urllib.request
+
+app = Flask(__name__)
 
 build_locks = {}
 
@@ -29,7 +32,7 @@ def get_dmmtools():
 def verify_hmac_hash(data, signature):
     secret = os.getenv('GITHUB_SECRET')
     if not secret:
-        return True
+        return False
     github_secret = bytes(secret, 'UTF-8')
     mac = hmac.new(github_secret, msg=data, digestmod=hashlib.sha1)
     return hmac.compare_digest('sha1=' + mac.hexdigest(), signature)
@@ -110,6 +113,11 @@ def handle_generation(fullname, remote, branch = None):
 #     return send_from_directory(path, c)
 
 if __name__ == "__main__":
+    secret = os.getenv('GITHUB_SECRET')
+    if not secret:
+        print("GITHUB_SECRET is not set. Aborting")
+        sys.exit(1)
+        
     print("Current secret is {}, use it while setting up webhook.".format(os.getenv('GITHUB_SECRET')))
     app.run()
     # path = os.path.join(os.path.dirname(__file__), "__cache", "Aurorastation/Aurora.3")
