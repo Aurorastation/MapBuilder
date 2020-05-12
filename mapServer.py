@@ -79,6 +79,7 @@ def github_payload():
     
     response = requests.get(compare_url)
     data = response.json()
+    logger.debug("Starting Build for Files: {}".format(data["files"])
     for f in data["files"]:
         if f["filename"].startswith("maps/"):
             logger.debug("Queuing Build for: %s",f["filename"])
