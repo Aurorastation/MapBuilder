@@ -62,7 +62,7 @@ def github_payload():
     if not branch == "refs/heads/master":
         return "Branch is not master: {} - No Build".format(branch)
     
-    base_compare_url = payload["compare_url"]
+    base_compare_url = payload["repository"]["compare_url"]
     base = payload["before"]
     head = payload["after"]
     compare_url = base_compare_url.replace("{base}",base).replace("{head}",head)
