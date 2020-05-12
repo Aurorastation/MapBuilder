@@ -29,14 +29,8 @@ build_locks = {}
 
 def get_dmmtools():
     if os.name == 'nt':
-        if not os.path.isfile("dmm-tools.exe"):
-            logger.debug("Downloading windows version of dmm-tools")
-            wget.download("https://github.com/SpaceManiac/SpacemanDMM/releases/download/suite-1.4/dmm-tools.exe", "dmm-tools.exe")
         return "dmm-tools.exe"
     else:
-        if not os.path.isfile("dmm-tools"):
-            logger.debug("Downloading linux version of dmm-tools")
-            wget.download("https://github.com/SpaceManiac/SpacemanDMM/releases/download/suite-1.4/dmm-tools", "dmm-tools")
         return "dmm-tools"
 
 def verify_hmac_hash(data, signature):
