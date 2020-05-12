@@ -117,7 +117,7 @@ def handle_generation(fullname, remote, branch = None):
             a.extend(args)
             a.append(m)
             subprocess.run(a, cwd=repo.working_tree_dir)
-        logger.debug(("Moving map builds for {}/{}.".format(remote, branchName))
+        logger.debug("Moving map builds for {}/{}.".format(remote, branchName))
         serveDir = os.path.join(os.getcwd(), "mapImages", fullname, branchName)
         if not os.path.isdir(serveDir):
             os.makedirs(serveDir, exist_ok=True)
@@ -125,7 +125,7 @@ def handle_generation(fullname, remote, branch = None):
             os.unlink(f)
         imageFiles = glob.glob(os.path.join(repo.working_tree_dir, "data", "minimaps", "*.png"))
         if len(imageFiles) != len(maps):
-            logger.debug("ALERT!!! Some map files failed to build. Built file count mismatches map file count.")
+            logger.error("ALERT!!! Some map files failed to build. Built file count mismatches map file count.")
         for image in imageFiles:
             fn = os.path.basename(image)
             newPh = os.path.join(serveDir, fn)
