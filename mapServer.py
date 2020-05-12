@@ -79,14 +79,14 @@ def github_payload():
     
     response = requests.get(compare_url)
     data = response.json()
-    logger.debug("Starting Build for Files: {}".format(data["files"]))
     for f in data["files"]:
         if f["filename"].startswith("maps/"):
             logger.debug("Queuing Build for: %s",f["filename"])
             th = threading.Thread(target=handle_generation, args=(payload["repository"]["full_name"], payload["repository"]["clone_url"], "master"))
             th.start()
-            break
-    return 'Build Queued'
+            return 'Build Queued'
+    logger.debug("No maps to build in branch")
+    return 'No maps to build'
 
 def handle_generation(fullname, remote, branch = None):
     logger.debug("Running Generation for. Fullname - {}, Remote - {}, Branch - {}".format(fullname, remote, branch))
@@ -144,7 +144,13 @@ if __name__ == "__main__":
         print("GITHUB_SECRET is not set. Aborting")
         sys.exit(1)
         
-    print("Current secret is {}, use it while setting up webhook.".format(os.getenv('GITHUB_SECRET')))
+    logger.debug("Current secret is {}, use it while setting up webhook.".format(os.getenv('GITHUB_SECRET')))
     app.run(host='0.0.0.0')
-    # path = os.path.join(os.path.dirname(__file__), "__cache", "Aurorastation/Aurora.3")
-    # handle_generation(path, "https://github.com/Aurorastation/Aurora.3.git", "")
+    default_name = os.getenv("DEFAULT_NAME") or "Aurorastation/Aurora.3"
+    default_remote =  os.getenv("DEFAULT_REMOTE") or "https://github.com/Aurorastation/Aurora.3.git"
+    default_branch =  os.getenv("DEFAULT_BRANCH") or "master"
+    # Check if we already have some images for the default repo:
+    serveDir = os.path.join(os.getcwd(), "mapImages", default_name, default_branch)
+    if not os.path.isdir(serveDir):
+        logger.info("Map Images for {} - {} are not generated - Building".format(default_name, default_branch))
+        handle_generation(default_name, default_remote, default_branch)
