@@ -145,7 +145,7 @@ if __name__ == "__main__":
         sys.exit(1)
         
     logger.debug("Current secret is {}, use it while setting up webhook.".format(os.getenv('GITHUB_SECRET')))
-    app.run(host='0.0.0.0')
+
     default_name = os.getenv("DEFAULT_NAME") or "Aurorastation/Aurora.3"
     default_remote =  os.getenv("DEFAULT_REMOTE") or "https://github.com/Aurorastation/Aurora.3.git"
     default_branch =  os.getenv("DEFAULT_BRANCH") or "master"
@@ -154,3 +154,5 @@ if __name__ == "__main__":
     if not os.path.isdir(serveDir):
         logger.info("Map Images for {} - {} are not generated - Building".format(default_name, default_branch))
         handle_generation(default_name, default_remote, default_branch)
+  
+    app.run(host='0.0.0.0')
