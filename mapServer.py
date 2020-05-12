@@ -13,7 +13,15 @@ import wget
 
 from flask import Flask, send_from_directory, request
 
-import urllib.request
+import logging
+
+logger = logging.getLogger()
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
 
 app = Flask(__name__)
 
@@ -22,10 +30,12 @@ build_locks = {}
 def get_dmmtools():
     if os.name == 'nt':
         if not os.path.isfile("dmm-tools.exe"):
+            logger.debug("Downloading windows version of dmm-tools")
             wget.download("https://github.com/SpaceManiac/SpacemanDMM/releases/download/suite-1.4/dmm-tools.exe", "dmm-tools.exe")
         return "dmm-tools.exe"
     else:
         if not os.path.isfile("dmm-tools"):
+            logger.debug("Downloading linux version of dmm-tools")
             wget.download("https://github.com/SpaceManiac/SpacemanDMM/releases/download/suite-1.4/dmm-tools", "dmm-tools")
         return "dmm-tools"
 
@@ -71,21 +81,25 @@ def github_payload():
     data = response.json()
     for f in data["files"]:
         if f["filename"].startswith("maps/"):
+            logger.debug("Queuing Build for: %s",f["filename"])
             th = threading.Thread(target=handle_generation, args=(payload["repository"]["full_name"], payload["repository"]["clone_url"], "master"))
             th.start()
             break
     return 'Build Queued'
 
 def handle_generation(fullname, remote, branch = None):
+    logger.debug("Running Generation for. Fullname - {}, Remote - {}, Branch - {}".format(fullname, remote, branch))
     path = os.path.join(os.getcwd(), "__cache", fullname)
     if not path in build_locks:
         build_locks[path] = threading.Lock()
     with build_locks[path]:
-        print("Started git update task for {}/{}.".format(remote, branch))
+        logger.debug("Started git update task for {}/{}.".format(remote, branch))
         repo = None
         if not os.path.isdir(path):
+            logger.debug("Cloning Repo")
             repo = Repo.clone_from(remote, path)
         else:
+            logger.debug("Updating Repo")
             repo = Repo(path)
             for remote in repo.remotes:
                 remote.fetch()
@@ -95,7 +109,7 @@ def handle_generation(fullname, remote, branch = None):
             else:
                 repo.remotes.origin.pull()
         branchName = repo.active_branch.name
-        print("Started map build task for {}/{}.".format(remote, branchName))
+        logger.debug("Started map build task for {}/{}.".format(remote, branchName))
         maps = glob.glob(os.path.join(repo.working_tree_dir, "maps", "**", "*.dmm"))
         args = [os.path.abspath(get_dmmtools()), "minimap", "--disable", "icon-smoothing,fancy-layers"]
         for m in maps:
@@ -103,7 +117,7 @@ def handle_generation(fullname, remote, branch = None):
             a.extend(args)
             a.append(m)
             subprocess.run(a, cwd=repo.working_tree_dir)
-        print("Moving map builds for {}/{}.".format(remote, branchName))
+        logger.debug(("Moving map builds for {}/{}.".format(remote, branchName))
         serveDir = os.path.join(os.getcwd(), "mapImages", fullname, branchName)
         if not os.path.isdir(serveDir):
             os.makedirs(serveDir, exist_ok=True)
@@ -111,12 +125,12 @@ def handle_generation(fullname, remote, branch = None):
             os.unlink(f)
         imageFiles = glob.glob(os.path.join(repo.working_tree_dir, "data", "minimaps", "*.png"))
         if len(imageFiles) != len(maps):
-            print("ALERT!!! Some map files failed to build. Built file count mismatches map file count.")
+            logger.debug("ALERT!!! Some map files failed to build. Built file count mismatches map file count.")
         for image in imageFiles:
             fn = os.path.basename(image)
             newPh = os.path.join(serveDir, fn)
             os.rename(image, newPh)
-        print("All done.")
+        logger.debug("All done.")
 
 # @app.route('/mapfile/<string:a>/<string:b>/<string:c>')
 # def send_mapfile(a, b, c):
