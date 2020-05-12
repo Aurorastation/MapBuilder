@@ -50,20 +50,26 @@ def verify_hmac_hash(data, signature):
 def github_payload():
     signature = request.headers.get('X-Hub-Signature')
     data = request.data
-    if verify_hmac_hash(data, signature):
-        if request.headers.get('X-GitHub-Event') == "push":
-            payload = request.get_json()
-            
-            if(payload["ref"] == "refs/heads/master"):
-                
-                response = requests.get(payload["compare"])
-                data = response.json()
-                for f in data["files"]:
-                    if f["filename"].startswith("maps/"):
-                        th = threading.Thread(target=handle_generation, args=(payload["repository"]["full_name"], payload["repository"]["clone_url"], "master"))
-                        th.start()
-                        break
-                return 'OK'
+    if not verify_hmac_hash(data, signature):
+        return "Invalid HMAC", 500
+    
+    github_event = request.headers.get('X-GitHub-Event') 
+    if not github_event == "push":
+        return "Unsupported event: {}".format(github_event)
+    
+    payload = request.get_json()
+
+    branch = payload["ref"] 
+    if not branch == "refs/heads/master":
+        return "Branch is not master: {} - No Build".format(branch)
+    response = requests.get(payload["compare"])
+    data = response.json()
+    for f in data["files"]:
+        if f["filename"].startswith("maps/"):
+            th = threading.Thread(target=handle_generation, args=(payload["repository"]["full_name"], payload["repository"]["clone_url"], "master"))
+            th.start()
+            break
+    return 'Build Queued'
 
 def handle_generation(fullname, remote, branch = None):
     path = os.path.join(os.getcwd(), "__cache", fullname)
