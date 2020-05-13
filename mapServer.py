@@ -149,5 +149,8 @@ if __name__ == "__main__":
     if not os.path.isdir(serveDir):
         logger.info("Map Images for {} - {} are not generated - Building".format(default_name, default_branch))
         handle_generation(default_name, default_remote, default_branch)
+    if sum([len(files) for r, d, files in os.walk(serveDir)]) == 0:
+        logger.info("Map Images for {} - {} are not generated - Building".format(default_name, default_branch))
+        handle_generation(default_name, default_remote, default_branch)
   
     app.run(host='0.0.0.0')
