@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 import subprocess
 import glob
 import hmac
@@ -124,7 +125,7 @@ def handle_generation(fullname, remote, branch = None):
         for image in imageFiles:
             fn = os.path.basename(image)
             newPh = os.path.join(serveDir, fn)
-            os.rename(image, newPh)
+            shutil.move(image, newPh)
         logger.debug("All done.")
 
 # @app.route('/mapfile/<string:a>/<string:b>/<string:c>')
