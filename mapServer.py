@@ -107,7 +107,7 @@ def handle_generation(fullname, remote, branch = None):
         branchName = repo.active_branch.name
         logger.debug("Started map build task for {}/{}.".format(remote, branchName))
         maps = glob.glob(os.path.join(repo.working_tree_dir, "maps", "**", "*.dmm"))
-        args = [os.path.abspath(get_dmmtools()), "minimap", "--disable", "icon-smoothing,fancy-layers"]
+        args = [os.path.abspath(get_dmmtools()), "minimap", "--disable", "icon-smoothing,fancy-layers,hide-space"]
         for m in maps:
             a = []
             a.extend(args)
