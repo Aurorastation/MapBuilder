@@ -109,7 +109,7 @@ def handle_generation(fullname, remote, branch = None):
         maps = glob.glob(os.path.join(repo.working_tree_dir, "maps", "**", "*.dmm"))
         args = [os.path.abspath(get_dmmtools()), "minimap", "--disable", "icon-smoothing,fancy-layers,hide-space"]
         for m in maps:
-            if m.contains("dungeon_spawns"):
+            if m.find("dungeon_spawns") != -1:
                 logger.debug("Skipping file as its within dungeon_spawns: {}".format(m))
                 continue
             a = []
