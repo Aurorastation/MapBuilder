@@ -9,8 +9,10 @@ import threading
 import requests
 
 import git
-from git import Repo
 import wget
+
+from git import Repo
+
 
 from flask import Flask, send_from_directory, request
 
@@ -28,11 +30,13 @@ app = Flask(__name__)
 
 build_locks = {}
 
+
 def get_dmmtools():
     if os.name == 'nt':
         return "dmm-tools.exe"
     else:
         return "dmm-tools"
+
 
 def verify_hmac_hash(data, signature):
     secret = os.getenv('GITHUB_SECRET')
@@ -42,14 +46,11 @@ def verify_hmac_hash(data, signature):
     mac = hmac.new(github_secret, msg=data, digestmod=hashlib.sha1)
     return hmac.compare_digest('sha1=' + mac.hexdigest(), signature)
 
-# @app.route('/')
-# def ping():
-#     # trueSecret = os.getenv('GITHUB_SECRET')
-#     # if trueSecret and secret != trueSecret:
-#     #     return 'Invalid SECRET'
-#     th = threading.Thread(target=handle_generation, args=("Aurorastation/Aurora.3", "https://github.com/Aurorastation/Aurora.3.git"))
-#     th.start()
-#     return 'OK'
+
+@app.route('/')
+def ping():
+     return 'OK'
+
 
 @app.route("/payload", methods=['POST'])
 def github_payload():
@@ -83,6 +84,7 @@ def github_payload():
     logger.debug("No maps to build in branch")
     return 'No maps to build'
 
+
 def handle_generation(fullname, remote, branch = None):
     logger.debug("Running Generation for. Fullname - {}, Remote - {}, Branch - {}".format(fullname, remote, branch))
     path = os.path.join(os.getcwd(), "__cache", fullname)
@@ -97,13 +99,18 @@ def handle_generation(fullname, remote, branch = None):
         else:
             logger.debug("Updating Repo")
             repo = Repo(path)
-            for remote in repo.remotes:
-                remote.fetch()
             if branch:
-                repo.git.checkout(branch)
-                repo.remotes.origin.pull()
+                repo.git.reset('--hard', 'origin/'+branch)
             else:
-                repo.remotes.origin.pull()
+                repo.git.reset('--hard', 'origin/master')
+            repo.remotes.origin.pull()
+            # for remote in repo.remotes:
+            #     remote.fetch()
+            # if branch:
+            #     repo.git.checkout(branch)
+            #     repo.remotes.origin.pull()
+            # else:
+            #     repo.remotes.origin.pull()
         branchName = repo.active_branch.name
         logger.debug("Started map build task for {}/{}.".format(remote, branchName))
         maps = glob.glob(os.path.join(repo.working_tree_dir, "maps", "**", "*.dmm"))
@@ -138,6 +145,7 @@ def handle_generation(fullname, remote, branch = None):
 # def send_mapfile(a, b, c):
 #     path = os.path.join(os.path.dirname(__file__), "__cache", a, b, "data", "minimaps")
 #     return send_from_directory(path, c)
+
 
 if __name__ == "__main__":
     secret = os.getenv('GITHUB_SECRET')
