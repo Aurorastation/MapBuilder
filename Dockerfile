@@ -3,8 +3,8 @@ FROM python:3.8
 COPY . /app
 WORKDIR /app
 
-RUN wget https://github.com/SpaceManiac/SpacemanDMM/releases/download/suite-1.7.2/dmm-tools.exe && \
-    wget https://github.com/SpaceManiac/SpacemanDMM/releases/download/suite-1.7.2/dmm-tools && \
+RUN wget https://github.com/SpaceManiac/SpacemanDMM/releases/download/suite-1.9/dmm-tools.exe && \
+    wget https://github.com/SpaceManiac/SpacemanDMM/releases/download/suite-1.9/dmm-tools && \
     chmod u+x dmm-tools.exe && \
     chmod u+x dmm-tools && \
     mkdir mapImages
